@@ -41,7 +41,7 @@
 #endif
 
 #if defined(USE_SOUND) && defined(USE_SDL) && !defined(WINMM_PLAY_SOUNDS)
-    #ifdef __ANDROID__
+    #ifdef DCSS_IOS //__ANDROID__
         #include <SDL_mixer.h>
     #else
         #include <SDL2/SDL_mixer.h>
@@ -108,8 +108,36 @@ bool shell_safe(const char *file)
 }
 
 #ifdef USE_SOUND
+static string _user_home_dir()
+{
+#ifdef TARGET_OS_WINDOWS
+    wchar_t home[MAX_PATH];
+    if (SHGetFolderPathW(0, CSIDL_APPDATA, 0, 0, home))
+        return "./";
+    else
+        return utf16_to_8(home);
+#else
+    const char *home = getenv("HOME");
+    if (!home || !*home)
+        return "./";
+    else
+        return mb_to_utf8(home);
+#endif
+}
+
+static string _user_home_subpath(const string subpath)
+{
+    return catpath(_user_home_dir(), subpath);
+}
+
 void play_sound(const char *file)
 {
+    char cwd[1024];
+    getcwd(cwd, sizeof(cwd));
+    string soundPath = catpath( cwd, "/dat/sound/" );
+    string filePath = catpath( soundPath.c_str(), file );
+    printf( "[play_sound] %s\n", file );
+    
 #if defined(WINMM_PLAY_SOUNDS)
     // Check whether file exists, is readable, etc.?
     if (file && *file)
@@ -129,7 +157,7 @@ void play_sound(const char *file)
         Mix_HaltChannel(0);
     if (sdl_sound_to_play != nullptr)
         Mix_FreeChunk(sdl_sound_to_play);
-    sdl_sound_to_play = Mix_LoadWAV(OUTS(file));
+    sdl_sound_to_play = Mix_LoadWAV(OUTS(filePath.c_str()));
     Mix_PlayChannel(0, sdl_sound_to_play, 0);
 #endif
 }

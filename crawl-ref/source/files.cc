@@ -316,6 +316,10 @@ static bool _create_directory(const char *dir)
 
 static bool _create_dirs(const string &dir)
 {
+    if (!_create_directory(dir.c_str()))
+        return false;
+    return true;
+    
     string sep = " ";
     sep[0] = FILE_SEPARATOR;
     vector<string> segments = split_string(sep.c_str(), dir, false, false);

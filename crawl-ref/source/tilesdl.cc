@@ -96,7 +96,8 @@ TilesFramework::TilesFramework() :
     m_key_mod(0),
     m_mouse(-1, -1),
     m_last_tick_moved(0),
-    m_last_tick_redraw(0)
+    m_last_tick_redraw(0),
+    m_inBackground(false)
 {
 }
 
@@ -1064,7 +1065,7 @@ bool TilesFramework::is_using_small_layout()
         return false;
     case MB_MAYBE:
     default:
-        Options.tile_use_small_layout = (m_windowsz.x<=480) ? MB_TRUE : MB_FALSE;
+        Options.tile_use_small_layout = (m_windowsz.x<=568) ? MB_TRUE : MB_FALSE;
         return Options.tile_use_small_layout == MB_TRUE;
     }
 #else
@@ -1425,6 +1426,9 @@ void TilesFramework::redraw()
 #ifdef DEBUG_TILES_REDRAW
     cprintf("\nredrawing tiles");
 #endif
+    if( m_inBackground )
+        return;
+    
     m_need_redraw = false;
 
     glmanager->reset_view_for_redraw(m_viewsc.x, m_viewsc.y);
@@ -1444,7 +1448,7 @@ void TilesFramework::redraw()
     }
     wm->swap_buffers();
 
-#ifdef __ANDROID__
+#if 1//def __ANDROID__
     glmanager->fixup_gl_state();
 #endif
 
@@ -1577,5 +1581,21 @@ bool TilesFramework::need_redraw() const
 int TilesFramework::to_lines(int num_tiles, int tile_height)
 {
     return num_tiles * tile_height / get_crt_font()->char_height();
+}
+
+
+void TilesFramework::setInBackground( bool inBackground )
+{
+    m_inBackground = inBackground;
+}
+
+void TilesFramework::unloadTextures( void )
+{
+    m_image->unload_textures();
+}
+
+void TilesFramework::reloadTextures( void )
+{
+    m_image->load_textures( true );
 }
 #endif

@@ -588,7 +588,9 @@ static void _show_startup_menu(newgame_def& ng_choice,
 
 again:
 #if defined(USE_TILE_LOCAL) && defined(TOUCH_UI)
+#ifndef DCSS_IOS
     wm->show_keyboard();
+#endif // DCSS_IOS
 #endif
     vector<player_save_info> chars = find_all_saved_characters();
     const int num_saves = chars.size();
@@ -756,7 +758,9 @@ again:
         if (key_is_escape(keyn) || keyn == CK_MOUSE_CMD)
         {
             // End the game
+#ifndef DCSS_IOS
             end(0);
+#endif // DCSS_IOS
         }
         else if (keyn == '\t' && _game_defined(defaults))
         {

@@ -26,7 +26,7 @@ void opening_screen()
 
 
     FileLineInput f(Options.filename.c_str());
-
+#ifndef DCSS_IOS
     if (!f.error())
     {
         msg += "<lightgrey>(Options read from ";
@@ -52,7 +52,7 @@ void opening_screen()
             msg += "not found";
         msg += "; using defaults.)</lightred>";
     }
-
+#endif // DCSS_IOS
     msg += "\n";
 
     formatted_string::parse_string(msg).display();
@@ -148,7 +148,16 @@ void enter_player_name(newgame_def& ng)
 
         // If the player wants out, we bail out.
         if (!_read_player_name(ng.name))
+        {
+#ifdef DCSS_IOS
+            if (Options.restart_after_game && Options.restart_after_save )
+            {
+                throw game_ended_condition(true);
+            }
+#else
             end(0);
+#endif // DCSS_IOS
+        }
         trim_string(ng.name);
 
         if (ng.name.empty())

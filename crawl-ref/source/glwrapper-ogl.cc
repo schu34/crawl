@@ -10,13 +10,16 @@
 // include more conditional includes here.
 #ifdef USE_SDL
 # ifdef USE_GLES
-#  ifdef __ANDROID__
+//#  ifdef __ANDROID__
+#  ifdef DCSS_IOS
 #   include <SDL.h>
 #  else
 #   include <SDL2/SDL.h>
 #   include <SDL_gles.h>
 #  endif
-#  include <GLES/gl.h>
+//#  include <GLES/gl.h>
+#  include <OpenGLES/ES1/gl.h>
+//#  include <OpenGLES/ES2/glext.h>
 # else
 #  ifdef __ANDROID__
 #   include <SDL.h>
@@ -75,7 +78,7 @@ OGLStateManager::OGLStateManager()
     glClearColor(0.0, 0.0, 0.0, 1.0f);
     glDepthFunc(GL_LEQUAL);
 
-#ifdef __ANDROID__
+#if 1//def __ANDROID__
     m_last_tex = 0;
 #endif
 }
@@ -215,7 +218,7 @@ void OGLStateManager::reset_view_for_resize(const coord_def &m_windowsz,
 
     // For ease, vertex positions are pixel positions.
 #ifdef USE_GLES
-# ifdef __ANDROID__
+# if 1//def __ANDROID__
     glOrthof(0, m_windowsz.x, m_windowsz.y, 0, -1000, 1000);
 # else
     glOrthox(0, m_windowsz.x, m_windowsz.y, 0, -1000, 1000);
@@ -255,7 +258,7 @@ void OGLStateManager::bind_texture(unsigned int texture)
 {
     glBindTexture(GL_TEXTURE_2D, texture);
     glDebug("glBindTexture");
-#ifdef __ANDROID__
+#if 1//def __ANDROID__
     m_last_tex = texture;
 #endif
 }
@@ -265,7 +268,7 @@ void OGLStateManager::load_texture(unsigned char *pixels, unsigned int width,
                                    int xoffset, int yoffset)
 {
     // Assumptions...
-#ifdef __ANDROID__
+#if 1//def __ANDROID__
     const GLenum bpp = GL_RGBA;
 #else
     const unsigned int bpp = 4;
@@ -327,7 +330,7 @@ void OGLStateManager::reset_view_for_redraw(float x, float y)
     glDebug("glTranslatef");
 }
 
-#ifdef __ANDROID__
+#if 1//def __ANDROID__
 void OGLStateManager::fixup_gl_state()
 {
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);

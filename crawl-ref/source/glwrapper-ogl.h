@@ -5,8 +5,9 @@
 #ifdef USE_GL
 
 #include "glwrapper.h"
-#ifdef __ANDROID__
-#include <GLES/gl.h>
+#if 1//def __ANDROID__
+//#include <GLES/gl.h>
+#include <OpenGLES/gltypes.h>
 #endif
 class OGLStateManager : public GLStateManager
 {
@@ -21,7 +22,7 @@ public:
                                        const coord_def &m_drawablesz) override;
     virtual void set_transform(const GLW_3VF &trans, const GLW_3VF &scale) override;
     virtual void reset_transform() override;
-#ifdef __ANDROID__
+#if 1//def __ANDROID__
     virtual void fixup_gl_state() override;
 #endif
 
@@ -34,7 +35,7 @@ public:
                               int xoffset=-1, int yoffset=-1) override;
 protected:
     GLState m_current_state;
-#ifdef __ANDROID__
+#if 1//def __ANDROID__
     GLint m_last_tex;
 #endif
 

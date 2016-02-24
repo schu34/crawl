@@ -100,6 +100,10 @@ static inline double pow(int x, double y) { return std::pow((double)x, y); }
     #endif
 #endif
 
+#ifdef DCSS_IOS
+#define UNIX
+#endif // DCSS_IOS
+
 //
 // MinGW
 //

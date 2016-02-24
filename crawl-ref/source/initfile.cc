@@ -711,10 +711,19 @@ void game_options::reset_options()
     }
 #endif
 
-#if defined(TARGET_OS_MACOSX)
+//#if defined(TARGET_OS_MACOSX)
+#if defined(DCSS_IOS)
     UNUSED(_resolve_dir);
+    
+    extern char **environ;
+    
+
+        for (char **env = environ; *env; ++env)
+            printf("%s\n", *env);
+    
+    
     const string tmp_path_base =
-        _user_home_subpath("Library/Application Support/" CRAWL);
+        _user_home_subpath("Documents");
     save_dir   = tmp_path_base + "/saves/";
     morgue_dir = tmp_path_base + "/morgue/";
     if (SysEnv.macro_dir.empty())

@@ -21,6 +21,27 @@
 # include <SDL2/SDL_image.h>
 # if defined(USE_SOUND) && !defined(WINMM_PLAY_SOUNDS)
 #  include <SDL2/SDL_mixer.h>
+
+#ifdef DCSS_IOS
+#  include <SDL.h>
+#else
+#  include <SDL2/SDL.h>
+#endif // DCSS_IOS
+
+# endif
+
+#ifdef DCSS_IOS
+#  include <SDL_image.h>
+#else
+# include <SDL2/SDL_image.h>
+#endif // DCSS_IOS
+
+# if defined(USE_SOUND) && !defined(WINMM_PLAY_SOUNDS)
+#ifdef DCSS_IOS
+#  include <SDL_mixer.h>
+#else
+#  include <SDL2/SDL_mixer.h>
+#endif // DCSS_IOS
 # endif
 #endif
 
@@ -37,6 +58,10 @@ WindowManager *wm = nullptr;
 
 #define MIN_SDL_WINDOW_SIZE_X 800
 #define MIN_SDL_WINDOW_SIZE_Y 480
+
+#ifdef DCSS_IOS
+int HandleAppEvents(void *userdata, SDL_Event *event);
+#endif // DCSS_IOS
 
 void WindowManager::create()
 {
@@ -345,7 +370,7 @@ SDLWrapper::~SDLWrapper()
 
 int SDLWrapper::init(coord_def *m_windowsz, int *densityNum, int *densityDen)
 {
-#ifdef __ANDROID__
+#if 1//def __ANDROID__
     // Do SDL initialization
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_TIMER
                  | SDL_INIT_NOPARACHUTE) != 0)
@@ -364,7 +389,7 @@ int SDLWrapper::init(coord_def *m_windowsz, int *densityNum, int *densityDen)
     _desktop_width = display_mode.w;
     _desktop_height = display_mode.h;
 
-#ifdef __ANDROID__
+#if 1//def __ANDROID__
     // Request OpenGL ES 1.0 context
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 1);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
@@ -386,11 +411,11 @@ int SDLWrapper::init(coord_def *m_windowsz, int *densityNum, int *densityDen)
     SDL_SetHint(SDL_HINT_VIDEO_HIGHDPI_DISABLED, "0");
 
 #ifdef USE_GLES
-#ifdef __ANDROID__
+#if 1//def __ANDROID__
     unsigned int flags = SDL_WINDOW_OPENGL
-                         | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI;
+                         | SDL_WINDOW_FULLSCREEN | SDL_WINDOW_ALLOW_HIGHDPI;
 #else
-    unsigned int flags = SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI;
+    unsigned int flags = SDL_WINDOW_FULLSCREEN;//SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI;
 #endif
 #else
     unsigned int flags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE
@@ -433,8 +458,8 @@ int SDLWrapper::init(coord_def *m_windowsz, int *densityNum, int *densityDen)
 
     string title = string(CRAWL " ") + Version::Long;
     m_window = SDL_CreateWindow(title.c_str(),
-                                SDL_WINDOWPOS_UNDEFINED,
-                                SDL_WINDOWPOS_UNDEFINED,
+                                SDL_WINDOWPOS_CENTERED,
+                                SDL_WINDOWPOS_CENTERED,
                                 m_windowsz->x, m_windowsz->y, flags);
     glDebug("SDL_CreateWindow");
     if (!m_window)
@@ -475,6 +500,11 @@ int SDLWrapper::init(coord_def *m_windowsz, int *densityNum, int *densityDen)
     *densityDen = m_windowsz->x;
     SDL_SetWindowMinimumSize(m_window, MIN_SDL_WINDOW_SIZE_X,
                              MIN_SDL_WINDOW_SIZE_Y);
+    
+    
+#ifdef DCSS_IOS
+    SDL_SetEventFilter(HandleAppEvents, NULL);
+#endif // DCSS_IOS
     return true;
 }
 
@@ -665,8 +695,10 @@ int SDLWrapper::wait_event(wm_event *event)
 
         // If we're going to accept this keydown, don't generate subsequent
         // textinput events for the same key.
+#ifndef DCSS_IOS
         if (event->key.keysym.sym)
             _suppress_textinput();
+#endif // DCSS_IOS
 
 /*
  * LShift = scancode 0x30; key_mod 0x1; unicode 0x130; sym 0x130 SDLK_LSHIFT
@@ -1027,5 +1059,68 @@ void SDLWrapper::glDebug(const char* msg)
        __android_log_print(ANDROID_LOG_INFO, "Crawl", "ERROR %x: %s", e, msg);
 #endif
 }
+
+#ifdef DCSS_IOS
+extern TilesFramework tiles;
+void ReleaseResource( void )
+{
+    tiles.setInBackground( true );
+    tiles.unloadTextures();
+}
+
+void ReloadResource( void )
+{
+    tiles.reloadTextures();
+    tiles.setInBackground( false );
+}
+
+int HandleAppEvents(void *userdata, SDL_Event *event)
+{
+    switch (event->type)
+    {
+            //        case SDL_APP_TERMINATING:
+            //            /* Terminate the app.
+            //             Shut everything down before returning from this function.
+            //             */
+            //            return 0;
+        case SDL_APP_LOWMEMORY:
+            /* You will get this when your app is paused and iOS wants more memory.
+             Release as much memory as possible.
+             */
+            ReleaseResource();
+            return 0;
+        case SDL_APP_WILLENTERBACKGROUND:
+            /* Prepare your app to go into the background.  Stop loops, etc.
+             This gets called when the user hits the home button, or gets a call.
+             */
+//            ReleaseResource();
+//            return 0;
+        case SDL_APP_DIDENTERBACKGROUND:
+            /* This will get called if the user accepted whatever sent your app to the background.
+             If the user got a phone call and canceled it, you'll instead get an    SDL_APP_DIDENTERFOREGROUND event and restart your loops.
+             When you get this, you have 5 seconds to save all your state or the app will be terminated.
+             Your app is NOT active at this point.
+             */
+            ReleaseResource();
+            return 0;
+        case SDL_APP_WILLENTERFOREGROUND:
+            /* This call happens when your app is coming back to the foreground.
+             Restore all your state here.
+             */
+//            ReloadResource();
+//            return 0;
+        case SDL_APP_DIDENTERFOREGROUND:
+            /* Restart your loops here.
+             Your app is interactive and getting CPU again.
+             */
+            ReloadResource();
+            return 0;
+        default:
+            /* No special processing, add it to the event queue */
+            return 1;
+    }
+}
+#endif // DCSS_IOS
+
 #endif // USE_SDL
 #endif // USE_TILE_LOCAL
