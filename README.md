@@ -4,6 +4,8 @@ Some issues are not finished yet, such as the app will quit after finishing tuto
 
 Ths iOS project is located at crawl-ref/source/iOS-project/ 
 
+Video: [https://www.youtube.com/watch?v=PzVWhanpukc&feature=youtu.be](https://www.youtube.com/watch?v=PzVWhanpukc&feature=youtu.be)
+
 Please execute following before compiling:
 
     git submodule init
